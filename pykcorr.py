@@ -70,10 +70,10 @@ def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_
 
         if wh.size != 0 :
             rmind[0,i+1] = wh[wh.size-1]
-            rmind[1,i] = p_min + i+1
+            rmind[1,i] = p_min + i
         else :
             rmind[0,i+1] = 0
-            rmind[1,i] = p_min + i+1
+            rmind[1,i] = p_min + i
 
     rmind[1,i+1] = p_max
 
