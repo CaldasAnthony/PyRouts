@@ -268,7 +268,7 @@ def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_
 
                         k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
 
-                    del amagat_foreign,k_interp_spespe
+                    del amagat_spe,k_interp_spespe
 
                     if decont == cont_species.size -1 :
                         if Kcorr == True :
@@ -492,7 +492,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
 
                     k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
 
-                del amagat_foreign,k_interp_spespe
+                del amagat_spe,k_interp_spespe
 
         k_cont_rmd = np.transpose(k_cont_rmd)
 
