@@ -220,7 +220,7 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
             T = T_array[i]
             pp = np.log10(P)
 
-            wh, = np.where(rmind[1]/2. > pp)
+            wh, = np.where(rmind[1] > pp)
             ind = wh[0]
 
             index, = np.where((P_rmd[rmind[0,ind-1]:rmind[0,ind]+1] == P)*(T_rmd[rmind[0,ind-1]:rmind[0,ind]+1] == T))
@@ -321,7 +321,7 @@ def k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P
             Q = Q_array[i]
             pp = np.log10(P)
 
-            wh, = np.where(rmind[1]/2. > pp)
+            wh, = np.where(rmind[1] > pp)
             ind = wh[0]
 
             index, = np.where((P_rmd[rmind[0,ind-1]:rmind[0,ind]+1] == P)*(T_rmd[rmind[0,ind-1]:rmind[0,ind]+1] == T)*(Q_rmd[rmind[0,ind-1]:rmind[0,ind]+1] == Q))
