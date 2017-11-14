@@ -1359,7 +1359,7 @@ def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cro
                 if Molecular == True :
                     tau[:,i_r-1] += 2*x*cross_mol[i_z]*Cn
                 if Continuum == True :
-                    tau[:,i_r-1] += 2*x*cross_cont[i_z]*Cn
+                    tau[:,i_r-1] += 2*x*cross_cont[i_z]
                 if Scattering == True :
                     tau[:,i_r-1] += 2*x*cross_sca[i_z]
                 if Clouds == True :
@@ -1374,7 +1374,7 @@ def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cro
                 if Molecular == True :
                     tau3[:,i_r-1] += 2*cross_mol[i_z]*INT[0]*N_A
                 if Continuum == True :
-                    tau3[:,i_r-1] += 2*x*cross_cont[i_z]*Cn
+                    tau3[:,i_r-1] += 2*x*cross_cont[i_z]
                 if Scattering == True :
                     tau3[:,i_r-1] += 2*x*cross_sca[i_z]
                 if Clouds == True :
