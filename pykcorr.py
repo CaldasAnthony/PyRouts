@@ -50,7 +50,7 @@ from pytransfert import *
 
 def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False) :
+                 Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Script=True) :
 
     if Clouds == True :
 
@@ -262,7 +262,7 @@ def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_
                             amagat_spe = amagat*composit_rmind[wh_c[0],:]**2*N_mol
 
                     k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                                T_rmind,bande_sample,T_cont_spespe,rmind[0].size,lay+1,K_cont.associations[i_cont],Kcorr,H2O)
+                                T_rmind,bande_sample,T_cont_spespe,rmind[0].size,lay+1,K_cont.associations[i_cont],Kcorr,Script,H2O)
 
                     for i_bande in range(dim_bande) :
 
@@ -486,7 +486,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
                         amagat_spe = amagat*compo_rmd[wh_c[0],:]**2*N_mol
 
                 k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,H2O)
+                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,Script,H2O)
 
                 for i_bande in range(dim_bande) :
 
@@ -2844,7 +2844,8 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
 ########################################################################################################################
 
 
-def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,repetition,iter_rep,species,Kcorr=True,Script=True,H2O=False) :
+def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,repetition,\
+                                     iter_rep,species,Kcorr=True,Script=True,H2O=False) :
 
     losch = 2.6867774e19
     size = T_array.size
