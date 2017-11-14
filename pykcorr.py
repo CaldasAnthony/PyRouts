@@ -3102,6 +3102,6 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
             bar.animate2(i_bande+1,iter_rep)
 
     if H2O == True :
-        return k_interp_spespe*0.0001*losch
+        return k_interp_spespe*0.0001
     else :
         return k_interp_spespe*100*losch**2
