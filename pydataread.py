@@ -485,7 +485,7 @@ def line_search(line) :
 ########################################################################################################################
 
 
-def flux_script(output,path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=False,Middle=True,Noise=False) :
+def flux_script(path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=False,Middle=True,Noise=False) :
 
     sh_I = np.shape(I)
     if error.size == 1 :
