@@ -1203,7 +1203,7 @@ def generator_1D_isoc_pressure(P,T,M,compo,dim_bande,Rp,h,alt_array,g0,cross,ind
 def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cross,ind_active,k_cont,\
                  Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,r_eff,r_cloud,rho_p,name_file,t,phi_rot,\
                  domain,ratio,directory,Tracer=False,Continuum=False,Scattering=False,Clouds=False,Kcorr=False,\
-                 Optimal=False,Discret=True,Integral=False,Gravity=False,Molecular=False,Pressure=True,Script=True) :
+                 Optimal=False,Discret=True,Integral=False,Gravity=False,Molecular=False,Pressure=True,Script=True,Middle=True) :
 
     P_col,T_col = data[0,:],data[1,:]
     if Tracer == True :
@@ -1226,16 +1226,28 @@ def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cro
     if Script == True :
         bar = ProgressBar(P.size-1,'Computation of the optical path')
 
-    tau = np.zeros((dim_bande,P.size-2))
-    tau3 = np.zeros((dim_bande,P.size-2))
+    if Middle == True :
+        tau = np.zeros((dim_bande,P.size-2))
+        tau3 = np.zeros((dim_bande,P.size-2))
+    else :
+        tau = np.zeros((dim_bande,P.size))
+        tau3 = np.zeros((dim_bande,P.size))
 
     for i_r in range(1,P.size-1) :
 
-        if Pressure == False :
-            r = (i_r - 0.5)*r_step
+        if Middle == True :
+            if Pressure == False :
+                r = (i_r - 0.5)*r_step
+            else :
+                alt_array = r_step
+                r = (alt_array[i_r]+alt_array[i_r-1])/2.
         else :
-            alt_array = r_step
-            r = (alt_array[i_r]+alt_array[i_r-1])/2.
+            if Pressure == False :
+                r = (i_r - 1)*r_step
+            else :
+                alt_array = r_step
+                r = alt_array[i_r-1]
+
         L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
         x_pre = 0
         dist = 0
@@ -1297,61 +1309,80 @@ def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cro
 
             else :
 
-                if i_z != P.size-1 :
-                    z = alt_array[i_z]
-                    z_mid = (alt_array[i_z]+alt_array[i_z-1])/2.
-                    x_mid = (alt_array[i_z]-alt_array[i_z-1])/2.
-                    x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
-                    x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
-                    dist += x
+                if Middle == True :
 
-                    if i_z != i_r :
-                        z_min = alt_array[i_z-1]
-                        z_max = alt_array[i_z]
-                        if Integral == True :
-                            if Gravity == False :
-                                g = g0*(1./(1.+z_mid/Rp))**2
-                                P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
-                                g_min = g0*(1./(1.+z_min/Rp))**2
-                            else :
-                                P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                    if i_z != P.size-1 :
+                        z = alt_array[i_z]
+                        z_mid = (alt_array[i_z]+alt_array[i_z-1])/2.
+                        x_mid = (alt_array[i_z]-alt_array[i_z-1])/2.
+                        x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                        x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                        dist += x
+
+                        if i_z != i_r :
+                            z_min = alt_array[i_z-1]
+                            z_max = alt_array[i_z]
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                                    g_min = g0*(1./(1.+z_min/Rp))**2
+                                else :
+                                    P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                        else :
+                            z_min = r
+                            z_max = alt_array[i_z]
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]
+                                    g_min = g
+                                else :
+                                    P_min = P[i_z]
                     else :
-                        z_min = r
-                        z_max = alt_array[i_z]
-                        if Integral == True :
-                            if Gravity == False :
-                                g = g0*(1./(1.+z_mid/Rp))**2
-                                P_min = P[i_z]
-                                g_min = g
-                            else :
-                                P_min = P[i_z]
+                        x = L - x_pre
+                        dist += x
+                        z_mid = (h+alt_array[i_z-1])/2.
+                        x_mid = (h-alt_array[i_z-1])/2.
+
+                        if i_z != i_r :
+                            z_min = alt_array[i_z-1]
+                            z_max = h
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                                    g_min = g0*(1./(1.+z_min/Rp))**2
+                                else :
+                                    P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                        else :
+                            z_min = r
+                            z_max = h
+                            z_mid = r
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]
+                                    g_min = g
+                                else :
+                                    P_min = P[i_z]
+
                 else :
-                    x = L - x_pre
-                    dist += x
-                    z_mid = (h+alt_array[i_z-1])/2.
-                    x_mid = (h-alt_array[i_z-1])/2.
 
-                    if i_z != i_r :
+                    if i_z != P.size-1 :
+                        z = alt_array[i_z-1]
+                        x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                        x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                        dist += x
+
                         z_min = alt_array[i_z-1]
-                        z_max = h
+                        z_max = alt_array[i_z]
                         if Integral == True :
                             if Gravity == False :
-                                g = g0*(1./(1.+z_mid/Rp))**2
-                                P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                                P_min = P[i_z-1]
                                 g_min = g0*(1./(1.+z_min/Rp))**2
                             else :
-                                P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
-                    else :
-                        z_min = r
-                        z_max = h
-                        z_mid = r
-                        if Integral == True :
-                            if Gravity == False :
-                                g = g0*(1./(1.+z_mid/Rp))**2
-                                P_min = P[i_z]
-                                g_min = g
-                            else :
-                                P_min = P[i_z]
+                                P_min = P[i_z-1]
 
             Cn = P[i_z]/(R_gp*T[i_z])*N_A
 

@@ -345,9 +345,10 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
                 for tw in range(wht.size) :
 
-                    dz[wht[tw],whla[tw],whlo[tw]] = \
+                    a_z = \
                         -R_gp*T[wht[tw],pres,whla[tw],whlo[tw]]/(M[wht[tw],pres,whla[tw],whlo[tw]]*g[wht[tw],whla[tw],whlo[tw]])*\
                                     np.log(P[wht[tw],pres,whla[tw],whlo[tw]]/P[wht[tw],pres-1,whla[tw],whlo[tw]])
+                    dz[wht[tw],pres,whla[tw],whlo[tw]] = a_z*(1+z[wht[tw],pres-1,whla[tw],whlo[tw]]/Rp)/(1-a_z/Rp)
 
             z[:,pres,:,:] = z[:,pres-1,:,:] + dz
 
@@ -355,6 +356,8 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
             if MassAtm == True :
                 Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
+
+    print z
 
     if h < np.amax(z) :
 
@@ -851,9 +854,10 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
 
                 for tw in range(wht.size) :
 
-                    dz[wht[tw],whla[tw],whlo[tw]] = \
+                    a_z = \
                         -R_gp*T[wht[tw],pres,whla[tw],whlo[tw]]/(M[wht[tw],pres,whla[tw],whlo[tw]]*g[wht[tw],whla[tw],whlo[tw]])*\
                                     np.log(P[wht[tw],pres,whla[tw],whlo[tw]]/P[wht[tw],pres-1,whla[tw],whlo[tw]])
+                    dz[wht[tw],whla[tw],whlo[tw]] = a_z*(1+z[wht[tw],pres-1,whla[tw],whlo[tw]]/Rp)/(1-a_z/Rp)
 
             z[:,pres,:,:] = z[:,pres-1,:,:] + dz
 
@@ -861,6 +865,9 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
 
             if MassAtm == True :
                 Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
+
+    print z[:,:,0,0]
+    print g[:,0,0], g0
 
     if h < np.amax(z) :
 

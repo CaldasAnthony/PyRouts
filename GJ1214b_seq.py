@@ -63,6 +63,7 @@ if Parameters == True :
 
         if TopPressure != 'No' :
             h = h_top
+            lim_alt = h
             if Layers == True :
                 reso_alt, delta_z, r_step, x_step = int(h/1000), h/np.float(n_layers), h/np.float(n_layers), h/np.float(n_layers)
             z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
