@@ -285,10 +285,19 @@ def diag(data_base) :
     controle = variables["controle"][:]
     Rp = controle[4]
     g = controle[6]
-    reso_long = controle[0]
-    reso_lat = controle[1]
+    reso_long = int(controle[0])
+    reso_lat = int(controle[1])
+    long_lat = np.zeros((2,int(np.amax(np.array([reso_long,reso_lat])))+1))
+    degpi = np.pi/180.
+    long_lat[0,0:reso_long+1] = np.linspace(-180.*degpi,180.*degpi,reso_long+1,dtype=np.float64)
+    long_lat[1,0:reso_lat+1] = np.linspace(-90*degpi,90.*degpi,reso_lat+1,dtype=np.float64)
+    inverse = np.array(['False','False'])
+    if variables['longitude'][0] == 180. :
+        inverse[0] = 'True'
+    if variables['latitude'][0] == 90. :
+        inverse[1] = 'True'
 
-    return Rp,g,reso_long,reso_lat
+    return Rp,g,reso_long,reso_lat,long_lat,inverse
 
 
 ########################################################################################################################
@@ -933,8 +942,11 @@ def order_assign(z,p,q,k,ind,assist):
 
 
 def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,phi_obli,\
-               x,x_range,x_reso,x_step,theta_range,theta_number,begin,inv,refrac,\
+               x,x_range,x_reso,x_step,theta_range,theta_number,begin,inv,refrac,long_lat,\
                Theta_init=False,Middle=True,Obliquity=False) :
+
+    long_ref = long_lat[0,0:reso_long+1]
+    lat_ref = long_lat[1,0:reso_lat+1]
 
     if Theta_init == True :
 
@@ -976,10 +988,10 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
 
         if delta%delta_step < delta_step/2. :
             delta_norm = delta - delta%delta_step
-            p = int(round(delta_norm*reso_lat/np.pi+reso_lat/2))
         else :
             delta_norm = delta - delta%delta_step + delta_step
-            p = int(round(delta_norm*reso_lat/np.pi+reso_lat/2))
+        p, = np.where(np.round(lat_ref,7) == np.round(delta_norm,7))
+        p = p[0]
 
         # A partir de la longitude, on en deduit l'indice q correspondant dans la maille spherique, cet
         # indice doit evoluer entre 0 (alpha -pi) et reso_long (alpha pi), sachant que le premier et le
@@ -987,10 +999,10 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
 
         if alpha%alpha_step < alpha_step/2. :
             alpha_norm = alpha - alpha%alpha_step
-            q = reso_long/2 + int(round(alpha_norm*reso_long/(2*np.pi)))
         else :
             alpha_norm = alpha - alpha%alpha_step + alpha_step
-            q = reso_long/2 + int(round(alpha_norm*reso_long/(2*np.pi)))
+        q, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+        q = q[0]
 
         if q == reso_long :
             q = 0
@@ -1021,14 +1033,14 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
                 x_ref = r*np.tan(np.pi-np.abs(phi_obli))
 
         q, alpha_o_ref, alpha_o_ref_0, inv, refrac, begin = qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,\
-                                        alpha_o,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,inv,refrac,begin)
+                                        alpha_o,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,inv,refrac,begin,long_ref)
 
         if delta_o%delta_step < delta_step/2. :
             delta_norm = delta_o - delta_o%delta_step
-            p = int(round(delta_norm*reso_lat/np.pi+reso_lat/2))
         else :
             delta_norm = delta_o - delta_o%delta_step + delta_step
-            p = int(round(delta_norm*reso_lat/np.pi+reso_lat/2))
+        p, = np.where(np.round(lat_ref,7) == np.round(delta_norm,7))
+        p = p[0]
 
     return p, q, z, alpha_o_ref, alpha_o_ref_0, inv, refrac, begin
 
@@ -1036,7 +1048,7 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
 ########################################################################################################################
 
 
-def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,inv,refrac,begin) :
+def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,inv,refrac,begin,long_ref) :
 
     if theta_range < theta_number/4 or theta_range > 3*theta_number/4 :
         # la longitude equatoriale est comprise entre pi/2 et 3pi/2 tandis que l'angle de reference des
@@ -1156,11 +1168,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
             alpha_norm = alpha_o - alpha_o%alpha_step
         else :
             alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-
-        if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-            q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-        if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-            q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+        q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+        q_o = q_o[0]
 
         if q_o == reso_long :
             q_o = 0
@@ -1173,11 +1182,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                 alpha_norm = alpha_o - alpha_o%alpha_step
             else :
                 alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-
-            if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-            if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+            q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+            q_o = q_o[0]
 
             if q_o == reso_long :
                 q_o = 0
@@ -1193,10 +1199,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                 else :
                     alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
 
-                if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                    q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-                if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                    q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+                q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1206,11 +1210,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step
                 else :
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step + alpha_step
-
-                if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                    q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-                if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                    q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+                q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1228,7 +1229,7 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
 ########################################################################################################################
 
 
-def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o_ref,alpha_step,reso_long,inv,refrac,begin) :
+def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o_ref,alpha_step,reso_long,inv,refrac,begin,long_ref) :
 
     if theta_range < theta_number/4 or theta_range > 3*theta_number/4 :
         # la longitude equatoriale est comprise entre pi/2 et 3pi/2 tandis que l'angle de reference des
@@ -1349,11 +1350,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
             alpha_norm = alpha_o - alpha_o%alpha_step
         else :
             alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-
-        if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-            q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-        if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-            q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+        q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+        q_o = q_o[0]
 
         if q_o == reso_long :
             q_o = 0
@@ -1366,11 +1364,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
                 alpha_norm = alpha_o - alpha_o%alpha_step
             else :
                 alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-
-            if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-            if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+            q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+            q_o = q_o[0]
 
             if q_o == reso_long :
                 q_o = 0
@@ -1385,11 +1380,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
                     alpha_norm = alpha_o - alpha_o%alpha_step
                 else :
                     alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-
-                if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                    q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-                if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                    q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+                q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1399,11 +1391,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step
                 else :
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step + alpha_step
-
-                if alpha_norm >= 0. and alpha_norm <= 3*np.pi/2. :
-                    q_o = int(reso_long/4 + int(round(alpha_norm*reso_long/(2*np.pi))))
-                if alpha_norm > 3*np.pi/2. and alpha_norm <= 2*np.pi :
-                    q_o = int(int(round(alpha_norm*reso_long/(2*np.pi)))-3*reso_long/4)
+                q_o, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -2138,6 +2127,34 @@ def reverse(x) :
 ########################################################################################################################
 
 
+def reverse_dim(x,dim,dtyp) :
+    sh = np.shape(x)
+    size = sh[dim]
+    X = np.zeros((sh),dtype=dtyp)
+    if dim > 4 :
+        print 'Array too large to reverse'
+    else :
+        if dim == 0 :
+            for i in range(size) :
+                X[i] = x[size-i-1]
+        if dim == 1 :
+            for i in range(size) :
+                X[:,i] = x[:,size-i-1]
+        if dim == 2 :
+            for i in range(size) :
+                X[:,:,i] = x[:,:,size-i-1]
+        if dim == 3 :
+            for i in range(size) :
+                X[:,:,:,i] = x[:,:,:,size-i-1]
+        if dim == 4 :
+            for i in range(size) :
+                X[:,:,:,:,i] = x[:,:,:,:,size-i-1]
+    return X
+
+
+########################################################################################################################
+
+
 def dataread(data) :
     lines = data.readlines()
     u = np.shape(lines)
@@ -2240,7 +2257,7 @@ def H2HeO(cont_species) :
 ########################################################################################################################
 
 
-def stellar_noise(star,detection,gamme) :
+def stellar_noise(star,detection,gamme,Total=False) :
 
     R, T, d = star.radius, star.temperature, star.distance
     tau, D, delta_t, bande = detection.tau, detection.diameter, detection.integration, detection.bande
@@ -2264,10 +2281,11 @@ def stellar_noise(star,detection,gamme) :
         else :
             noise[i_bande] = 'nan'
 
-    for i_b in range(sh_b[0]) :
-        fac = np.pi**2*tau[i_b]*delta_t*c*R**2*D[i_b]**2/(2*d**2)
-        N_phot = integrate.quad(lambda wl:fac*1./(wl**4*(np.exp(h_P*c/(k_B*wl*T))-1)),bande[i_b,0]*1.e-6,bande[i_b,1]*1.e-6)
-        print 1/np.sqrt(N_phot[0])
+    if Total == True :
+        for i_b in range(sh_b[0]) :
+            fac = np.pi**2*tau[i_b]*delta_t*c*R**2*D[i_b]**2/(2*d**2)
+            N_phot = integrate.quad(lambda wl:fac*1./(wl**4*(np.exp(h_P*c/(k_B*wl*T))-1)),bande[i_b,0]*1.e-6,bande[i_b,1]*1.e-6)
+            print 1/np.sqrt(N_phot[0])
     return noise
 
 
@@ -2281,3 +2299,33 @@ class JWST :
         self.bande = np.array([[0.6,1.],[1.,9.],[9.,23.5],[23.5,27.5]])
         self.tau = np.array([0.30,0.40,0.36,0.18])
 
+
+########################################################################################################################
+
+
+def create_circle(x,R) :
+
+    wh1, =np.where((x <= 0)*(x >= -R))
+    wh2, =np.where((x <= R)*(x >= 0))
+
+    y_cir = np.array([0])
+    y_cir = np.append(y_cir,-np.sqrt(R**2 - x[wh1]**2))
+    y_cir = np.append(y_cir,np.array([-R]))
+    y_cir = np.append(y_cir,-np.sqrt(R**2 - x[wh2]**2))
+    y_cir = np.append(y_cir,np.array([0]))
+    y_cir = np.append(y_cir,np.sqrt(R**2 - x[wh2[::-1]]**2))
+    y_cir = np.append(y_cir,np.array([R]))
+    y_cir = np.append(y_cir,np.sqrt(R**2 - x[wh1[::-1]]**2))
+    y_cir = np.append(y_cir,np.array([0]))
+
+    x_cir = np.array([-R])
+    x_cir = np.append(x_cir,x[wh1])
+    x_cir = np.append(x_cir,np.array([0]))
+    x_cir = np.append(x_cir,x[wh2])
+    x_cir = np.append(x_cir,np.array([R]))
+    x_cir = np.append(x_cir,x[wh2[::-1]])
+    x_cir = np.append(x_cir,np.array([0]))
+    x_cir = np.append(x_cir,x[wh1[::-1]])
+    x_cir = np.append(x_cir,np.array([-R]))
+
+    return x_cir,y_cir

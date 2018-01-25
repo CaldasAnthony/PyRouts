@@ -56,10 +56,10 @@ if Parameters == True :
         data_path = '%s%s'%(data_base,diag_file)
         if Layers == False :
             data_convert,h_top = Boxes(data_path,delta_z,Rp,h,P_h,t_selec,g0,M,number,T_comp,P_comp,Q_comp,n_species,X_species,\
-                M_species,c_species,m_species,ratio_HeH2,Upper,TopPressure,Surf,Tracer,Cloudy,Middle,LogInterp,TimeSelec,MassAtm,NoH2)
+                M_species,c_species,m_species,ratio_HeH2,Upper,TopPressure,Inverse,Surf,Tracer,Cloudy,Middle,LogInterp,TimeSelec,MassAtm,NoH2)
         else :
             data_convert,h_top = NBoxes(data_path,n_layers,Rp,h,P_h,t_selec,g0,M,number,T_comp,P_comp,Q_comp,n_species,X_species,\
-                M_species,c_species,m_species,ratio_HeH2,Upper,TopPressure,Surf,Tracer,Cloudy,Middle,LogInterp,TimeSelec,MassAtm,NoH2)
+                M_species,c_species,m_species,ratio_HeH2,Upper,TopPressure,Inverse,Surf,Tracer,Cloudy,Middle,LogInterp,TimeSelec,MassAtm,NoH2)
 
         if TopPressure != 'No' :
             h = h_top
@@ -78,7 +78,7 @@ if Parameters == True :
     if Cylindre == True :
 
         p_grid,q_grid,z_grid = cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,\
-                                x_step,z_array,phi_rot,phi_obli,reso_long,reso_lat,Obliquity,Middle)
+                                x_step,z_array,phi_rot,phi_obli,reso_long,reso_lat,long_lat,Obliquity,Middle)
 
         np.save("%s%s/%s/p_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,reso_long,reso_lat,\
                 reso_alt,r_step,phi_rot,phi_obli),p_grid)

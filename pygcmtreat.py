@@ -108,7 +108,7 @@ import time
 
 
 def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x_species,M_species,c_species,m_species,ratio,Upper,\
-          TopPressure,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False) :
+          TopPressure,Inverse,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False) :
 
     file = Dataset("%s.nc"%(data))
     variables = file.variables
@@ -609,6 +609,13 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
         print mess
 
+    if Inverse[0] == 'True' :
+        data_convert = reverse_dim(data_convert,4,np.float64)
+        print 'Data needs to be reverse on longitude.'
+    if Inverse[1] == 'True' :
+        data_convert = reverse_dim(data_convert,3,np.float64)
+        print 'Data needs to be reverse on latitude.'
+
     return data_convert, h
 
 
@@ -616,7 +623,7 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
 
 def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x_species,M_species,c_species,m_species,ratio,Upper,\
-          TopPressure,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False) :
+          TopPressure,Inverse,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False) :
 
     file = Dataset("%s.nc"%(data))
     variables = file.variables
@@ -866,9 +873,6 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
             if MassAtm == True :
                 Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
 
-    print z[:,:,0,0]
-    print g[:,0,0], g0
-
     if h < np.amax(z) :
 
         h = np.amax(z)
@@ -910,7 +914,6 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
         delta_z =np.float(np.int(h/np.float(n_layers)))
         h = delta_z*n_layers
 
-    print P_mean, z_h, dim, delta_z, h
     print("The final thickness of the atmosphere is %i m"%((dim-2)*delta_z))
 
     data_convert = np.zeros((number,n_t,dim,n_lat,n_long),dtype=np.float64)
@@ -1119,6 +1122,13 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
 
         print mess
 
+    if Inverse[0] == 'True' :
+        data_convert = reverse_dim(data_convert,4,np.float64)
+        print 'Data needs to be reverse on longitude.'
+    if Inverse[1] == 'True' :
+        data_convert = reverse_dim(data_convert,3,np.float64)
+        print 'Data needs to be reverse on latitude.'
+
     return data_convert, h
 
 
@@ -1142,7 +1152,7 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
 
 
 def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,x_step,z_level,phi_rot,\
-                                   phi_obli,reso_long,reso_lat,Obliquity=False,Middle=False,Layers=False) :
+                                   phi_obli,reso_long,reso_lat,long_lat,Obliquity=False,Middle=False,Layers=False) :
 
     # On definit un r maximal qui est la somme du rayon planetaire et du toit de l'atmosphere, on en deduit une valeur
     # entiere et qui est un multiple du pas en r
@@ -1242,7 +1252,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
                         p, q, z, alpha_o_ref, alpha_o_ref_0, inv, refrac, begin = latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,\
                                                         reso_lat,alpha,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,phi_obli,x,x_range,\
-                                                        x_reso,x_step,theta_range,theta_number,begin,inv,refrac,True,Middle,Obliquity)
+                                                        x_reso,x_step,theta_range,theta_number,begin,inv,refrac,long_lat,True,Middle,Obliquity)
 
                         if Obliquity == False :
 
@@ -1308,8 +1318,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
 def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h,t,reso_long,reso_lat,Middle=False,\
                       Integral=True,Discret=True,Gravity=False,Ord=False) :
-
-    print x_step,r_step,theta_step,Rp,g0,h,t,reso_long
 
     r_size,theta_size,x_size = np.shape(p_grid)
     number,t_size,z_size,lat_size,long_size = np.shape(data)

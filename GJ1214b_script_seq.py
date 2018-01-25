@@ -43,7 +43,7 @@ Ts = 3000.
 # Proprietes en cas de lecture d'un diagfi
 
 if data_base != '' :
-    Rp, g0, reso_long, reso_lat = diag('%s%s'%(data_base,diag_file))
+    Rp, g0, reso_long, reso_lat, long_lat, Inverse = diag('%s%s'%(data_base,diag_file))
 
 alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 
@@ -98,7 +98,7 @@ number = 3 + n_species.size + m_species.size + c_species.size
 
 # Choix dans la section de la maille
 
-lim_alt, rupt_alt = 5.7e+6, 0.e+0
+lim_alt, rupt_alt = 0.0, 0.e+0
 lat, long = 0, 0
 z_lim = int(lim_alt/delta_z)
 z_reso = int(h/delta_z) + 1
@@ -206,7 +206,7 @@ TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
 # Cylindric transfert
 
-Cylindric_transfert_3D = True
+Cylindric_transfert_3D = False
 
 Isolated = False        ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
@@ -235,6 +235,9 @@ Flux = True            ###### Spectre flux = f(longueur d'onde)
 
 # Sauvegardes
 
+if Rupt == False :
+    lim_alt = h
+    rupt_alt = 0.
 save_adress = "/Users/caldas/Desktop/Pytmosph3R/I/"
 special = ''
 stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
