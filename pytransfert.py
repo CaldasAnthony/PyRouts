@@ -100,7 +100,7 @@ def trans2fert1D (k_corr_data_grid,k_cont,Q_cloud,Rp,h,g0,r_step,theta_step,\
 
         k_rmd = np.zeros((T_col.size,dim_bande))
 
-    Itot = np.ones((dim_bande,r_size,1))
+    Itot = np.ones((dim_bande,r_size-1,1))
 
     bar = ProgressBar(r_size,'Radiative transfert progression')
 
@@ -216,7 +216,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
     if TimeSel == True :
         data = data[:,t,:,:,:]
 
-    Itot = np.ones((dim_bande,r_size,theta_size))
+    Itot = np.ones((dim_bande,r_size-1,theta_size))
 
     bar = ProgressBar(int(round(2*np.pi/theta_step)),'Radiative transfert progression')
 
@@ -324,7 +324,7 @@ def effective_radius(I,R_s,Rp,r_step,extra,Middle=False) :
         if r == 0 :
 
             if Middle == False :
-                A = np.pi*(1/2.)*(2.*R + 1/2.*r_step)*r_step/float(theta_size)
+                A = np.pi*(1/2.)*(2.*R + 1/2.*r_step)*r_step
                 R += r_step/2.
             else :
                 A = 2.*np.pi*r_step*((r+0.5)*r_step + Rp)
@@ -335,7 +335,7 @@ def effective_radius(I,R_s,Rp,r_step,extra,Middle=False) :
         else :
 
             if Middle == False :
-                A = np.pi*(2*R + r_step)*r_step/float(theta_size)
+                A = np.pi*(2*R + r_step)*r_step
                 R += r_step
             else :
                 A = 2.*np.pi*r_step*((r+0.5)*r_step + Rp)
