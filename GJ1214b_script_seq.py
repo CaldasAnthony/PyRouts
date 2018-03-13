@@ -78,6 +78,7 @@ dim_bande, dim_gauss = 3000, 16
 # Selection des sections efficaces
 
 ind_cross, ind_active = index_active (n_species,n_species_cross,n_species_active)
+print ind_active
 
 # Informations generale sur les donnees continuum
 
